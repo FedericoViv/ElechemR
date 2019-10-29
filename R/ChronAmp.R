@@ -1,232 +1,236 @@
-ChronAmp = function(Co = 0.001, exptime = 1, Dx = 0.00001, Dm = 0.45,
-                    Temp = 298.15, n = 1, Area = 1, DerApprox = 2,
-                    errCheck = FALSE, Method = "Euler") {
+#' include Algebraic.R
+NULL
 
-  data_hold = new.env()
-  environment(ParCall) = environment()
-  environment(Euler) = environment()
+#' Chrono amperometry digital simulation
+#'
+#' Return a graph I vs t of the electrochemical process
+#'
+#' @param Co bulk concentration
+#' @param exptime experimental time to be simulated
+#' @param Dx diffusion coefficient
+#' @param Dm simulation parameter, maximum 0.5 for explicit methods
+#' @param Temp temperature in kelvin
+#' @param n number of electrons involved in the process
+#' @param Area area of the electrode
+#' @param DerApprox number of point for the approximation of the first derivative
+#' @param errCheck if true the function returns a list with parameters for CottrCheck function
+#' @param Method method to be used for the simulation = "Euler" "BI" "RK4" "CN" "BDF"
+#'
+#'
+#' @return if errCheck == F a graph I vs t, if errCheck == T a list
+#'
+#' @examples
+#' ChronAmp(Co = 0.001, exptime = 1, DerApprox = 2, Dm = 0.45, errCheck = FALSE, Method = "Euler")
+#'
+#' @export
+#' @import ggplot2
 
-  ParCall("ChronAmp", n. = n, Temp. = Temp, Dx1. = Dx, exptime. = exptime, Dm. = Dm) #dato che hanno lo stesso ambiente non serve più replicare le variabili
-  print(data_hold$Par$j)
-  data_hold$Ox = OneMat(data_hold$Par$l, data_hold$Par$j)                            #sistemare
+ChronAmp <- function(Co = 0.001, exptime = 1, Dx = 0.00001, Dm = 0.45,
+                     Temp = 298.15, n = 1, Area = 1, DerApprox = 2,
+                     errCheck = FALSE, Method = "Euler"){
+  environment(ParCall) <- environment()
+  environment(graph_caller) <- environment()
+  environment(Euler) <- environment()
+  environment(RK4) <- environment()
+  environment(BI) <- environment()
+  environment(CN) <- environment()
+  environment(BDF) <- environment()
+  environment(graph_caller) <- environment()
 
-  if (Method == "Euler") {
+  Par_list <- ParCall("ChronAmp")
 
-    Euler()
+  Oxmatrix <- OneMat(Par_list$l,Par_list$j)
 
-  } else if (Method == "RK4") {
+  Geuler <- do.call(Euler(), c(list(Oxmatrix), list(Par_list))) ### sistemare
 
-    RK4()
+  GRK4 <- RK4(Oxmatrix, Par_list)
 
-  } else if (Method == "BI") {
+  GBI <- BI(Oxmatrix, Par_list)
 
-    BI()
+  GCN <- CN(Oxmatrix, Par_list)
 
-  } else if (Method == "CN") {
+  GBDF <- BDF(Oxmatrix, Par_list)
 
-    CN()
+  graphy <- graph_caller(Par_list)
 
 
-  } else if (Method == "BDF") {
-
-    BDF()
-
-  } else if (!(Method %in% c("Euler", "BI", "RK4", "CN", "BDF"))) {
-    return("Available methods are Euler, BI, RK4, CN and BDF")
-  }
-
-  G = data_hold$Jox
-  i = (n*data_hold$Par$FA*G*Dx*Area*Co)/(sqrt(Dx*data_hold$Par$tau))
-
-  graphy = ggplot(data = data.frame(i[1:(length(i)-1)],data_hold$Par$t[1:(length(i)-1)]),
-                  aes(y = i[1:(length(i)-1)], x = data_hold$Par$t[1:(length(i)-1)])) +
-    geom_point() + xlab("t / s") +
-    ylab("I / A") + theme_classic()
-
-  if (errCheck == TRUE){
-    return(list(G,Dx,Co,data_hold$Par$dtn,data_hold$Par$h,data_hold$Par$l,data_hold$Par$j,i,n,Area))
-  } else {
-    return(graphy)
-  }
 }
 
+# euler solver
 
-## Euler solver
-
-Euler <- function(){
-  for (i1 in 1:(data_hold$Par$l-1)) {
-    data_hold$Ox[i1,1] = 0
-    for (j1 in 2:(data_hold$Par$j-1)) {
-      data_hold$Ox[i1 + 1,j1] = data_hold$Ox[i1,j1] + Dm*(data_hold$Ox[i1, j1 -1] - 2*data_hold$Ox[i1, j1] + data_hold$Ox[i1, j1+1])
+Euler <- function(Ox, Par, env = parent.frame()) {
+  for (i1 in 1:(Par$l-1)) {
+    Ox[i1,1] = 0
+    for (j1 in 2:(Par$j-1)) {
+      Ox[i1 + 1,j1] = Ox[i1,j1] + Dm*(Ox[i1, j1 -1] - 2*Ox[i1, j1] + Ox[i1, j1+1])
     }
   }
-  data_hold$Jox = Derv(Ox = data_hold$Ox, h = data_hold$Par$h, npoints = DerApprox)
+  Jox = Derv(Ox = Ox, h = Par$h, npoints = DerApprox)
+  return(Jox)
 }
-
 
 ##Runge kutta 4th grade solver
 
-RK4 <- function() {
+RK4 <- function(Ox, Par) {
 
-  for (i1 in 1:(data_hold$Par$l-1)) {
-    k1 = ZeroMat(data_hold$Par$j)
-    k2 = ZeroMat(data_hold$Par$j)
-    k3 = ZeroMat(data_hold$Par$j)
-    k4 = ZeroMat(data_hold$Par$j)
-    data_hold$Ox[i1,1] = 0
-    data_hold$Ox[i1 +1, 1] = 0
+  for (i1 in 1:(Par$l-1)) {
+    k1 = ZeroMat(Par$j)
+    k2 = ZeroMat(Par$j)
+    k3 = ZeroMat(Par$j)
+    k4 = ZeroMat(Par$j)
+    Ox[i1,1] = 0
+    Ox[i1 +1, 1] = 0
 
-    for (j1 in 2:(data_hold$Par$j-1)) {
-      k1[j1] = Dm*(data_hold$Ox[i1, j1 -1] - 2*data_hold$Ox[i1, j1] + data_hold$Ox[i1, j1+1])
-      data_hold$Ox[i1 + 1,j1] = data_hold$Ox[i1,j1] + k1[j1]*0.5
+    for (j1 in 2:(Par$j-1)) {
+      k1[j1] = Dm*(Ox[i1, j1 -1] - 2*Ox[i1, j1] + Ox[i1, j1+1])
+      Ox[i1 + 1,j1] = Ox[i1,j1] + k1[j1]*0.5
     }
-    for (j1 in 2:(data_hold$Par$j-1)) {
-      k2[j1] = Dm*(data_hold$Ox[i1 + 1, j1 -1] - 2*data_hold$Ox[i1 + 1, j1] + data_hold$Ox[i1 + 1, j1+1])
-      data_hold$Ox[i1 + 1,j1] = data_hold$Ox[i1,j1] + k2[j1]*0.5
+    for (j1 in 2:(Par$j-1)) {
+      k2[j1] = Dm*(Ox[i1 + 1, j1 -1] - 2*Ox[i1 + 1, j1] + Ox[i1 + 1, j1+1])
+      Ox[i1 + 1,j1] = Ox[i1,j1] + k2[j1]*0.5
     }
-    for (j1 in 2:(data_hold$Par$j-1)) {
-      k3[j1] = Dm*(data_hold$Ox[i1 + 1, j1 -1] - 2*data_hold$Ox[i1 + 1, j1] + data_hold$Ox[i1 + 1, j1+1])
-      data_hold$Ox[i1 + 1,j1] = data_hold$Ox[i1,j1] + k3[j1]
+    for (j1 in 2:(Par$j-1)) {
+      k3[j1] = Dm*(Ox[i1 + 1, j1 -1] - 2*Ox[i1 + 1, j1] + Ox[i1 + 1, j1+1])
+      Ox[i1 + 1,j1] = Ox[i1,j1] + k3[j1]
     }
-    for (j1 in 2:(data_hold$Par$j-1)) {
-      k4[j1] = Dm*(data_hold$Ox[i1 + 1, j1 -1] - 2*data_hold$Ox[i1 + 1, j1] + data_hold$Ox[i1 + 1, j1+1])
-      data_hold$Ox[i1 + 1,j1] = data_hold$Ox[i1,j1] + (k1[j1] + 2*k2[j1] + 2*k3[j1] + k4[j1])/6
+    for (j1 in 2:(Par$j-1)) {
+      k4[j1] = Dm*(Ox[i1 + 1, j1 -1] - 2*Ox[i1 + 1, j1] + Ox[i1 + 1, j1+1])
+      Ox[i1 + 1,j1] = Ox[i1,j1] + (k1[j1] + 2*k2[j1] + 2*k3[j1] + k4[j1])/6
     }
   }
 
-  data_hold$Jox = Derv(Ox = data_hold$Ox, h = data_hold$Par$h, npoints = DerApprox)
+  Jox = Derv(Ox = Ox, h = Par$h, npoints = DerApprox)
+  return(Jox)
 
 }
+
 
 
 #backward inverse solver
 
-BI <- function(){
-  al1 = 1/(data_hold$Par$h^2)
-  al2 = -2/(data_hold$Par$h^2)
-  al3 = 1/(data_hold$Par$h^2)
-  a1 = (al2 - 1/data_hold$Par$dtn)/al1
+BI <- function(Ox, Par){
+  al1 = 1/(Par$h^2)
+  al2 = -2/(Par$h^2)
+  al3 = 1/(Par$h^2)
+  a1 = (al2 - 1/Par$dtn)/al1
   a2 = al3/al1
 
-  for (i1 in 1:(data_hold$Par$l-1)) {
-    Y = ZeroMat(data_hold$Par$j-2,data_hold$Par$j-2)
+  for (i1 in 1:(Par$l-1)) {
+    Y = ZeroMat(Par$j-2,Par$j-2)
     Y[1,1] = a1
     Y[1,2] = a2
-    Y[data_hold$Par$j-2,data_hold$Par$j-3] = 1
-    Y[data_hold$Par$j-2,data_hold$Par$j-2] = a1
-    for (i in 2:(data_hold$Par$j-3)) {
+    Y[Par$j-2,Par$j-3] = 1
+    Y[Par$j-2,Par$j-2] = a1
+    for (i in 2:(Par$j-3)) {
       Y[i,i] = a1
       Y[i,i-1] = 1
       Y[i, i +1] = a2
     }
 
-    data_hold$Ox[i1,1] = 0
-    data_hold$Ox[i1+1,1] = 0
-    b = (-data_hold$Ox[i1,2:(data_hold$Par$j-1)]/(al1*data_hold$Par$dtn))
-    b[data_hold$Par$j-2] = b[data_hold$Par$j-2] - a2*1
-    b[1] = b[1] - data_hold$Ox[i1+1,1]
-    data_hold$Ox[i1+1,2:(data_hold$Par$j-1)] = solve(Y) %*% b
+    Ox[i1,1] = 0
+    Ox[i1+1,1] = 0
+    b = (-Ox[i1,2:(Par$j-1)]/(al1*Par$dtn))
+    b[Par$j-2] = b[Par$j-2] - a2*1
+    b[1] = b[1] - Ox[i1+1,1]
+    Ox[i1+1,2:(Par$j-1)] = solve(Y) %*% b
   }
 
-  data_hold$Jox = Derv(Ox = data_hold$Ox, h = data_hold$Par$h, npoints = DerApprox)
+  Jox = Derv(Ox = Ox, h = Par$h, npoints = DerApprox)
 }
 
 
 # Crank nicholson solver
 
-CN <- function(){
-  al1 = 1/(data_hold$Par$h^2)
-  al2 = -2/(data_hold$Par$h^2)
-  al3 = 1/(data_hold$Par$h^2)
-  a1 = (al2 - 2/data_hold$Par$dtn)/al1
+CN <- function(Ox, Par){
+  al1 = 1/(Par$h^2)
+  al2 = -2/(Par$h^2)
+  al3 = 1/(Par$h^2)
+  a1 = (al2 - 2/Par$dtn)/al1
   a2 = al3/al1
-  a3 = (al2 + 2/data_hold$Par$dtn)/al1
+  a3 = (al2 + 2/Par$dtn)/al1
 
-  for (i1 in 1:(data_hold$Par$l-1)) {
-    Y = ZeroMat(data_hold$Par$j-2,data_hold$Par$j-2)
+  for (i1 in 1:(Par$l-1)) {
+    Y = ZeroMat(Par$j-2,Par$j-2)
     Y[1,1] = a1
     Y[1,2] = a2
-    Y[data_hold$Par$j-2,data_hold$Par$j-3] = 1
-    Y[data_hold$Par$j-2,data_hold$Par$j-2] = a1
-    for (i in 2:(data_hold$Par$j-3)) {
+    Y[Par$j-2,Par$j-3] = 1
+    Y[Par$j-2,Par$j-2] = a1
+    for (i in 2:(Par$j-3)) {
       Y[i,i] = a1
       Y[i,i-1] = 1
       Y[i, i +1] = a2
     }
 
-    data_hold$Ox[i1,1] = 0
-    data_hold$Ox[i1+1,1] = 0
-    b = -a3*data_hold$Ox[i1,2:(data_hold$Par$j-1)] - data_hold$Ox[i1,1:((data_hold$Par$j-1)-1)] - a2*data_hold$Ox[i1,3:((data_hold$Par$j-1)+1)]
-    b[data_hold$Par$j-2] = b[data_hold$Par$j-2] - a2*1
-    b[1] = b[1] - data_hold$Ox[i1+1,1]
-    data_hold$Ox[i1+1,2:(data_hold$Par$j-1)] = solve(Y) %*% b
+    Ox[i1,1] = 0
+    Ox[i1+1,1] = 0
+    b = -a3*Ox[i1,2:(Par$j-1)] - Ox[i1,1:((Par$j-1)-1)] - a2*Ox[i1,3:((Par$j-1)+1)]
+    b[Par$j-2] = b[Par$j-2] - a2*1
+    b[1] = b[1] - Ox[i1+1,1]
+    Ox[i1+1,2:(Par$j-1)] = solve(Y) %*% b
   }
 
-  data_hold$Jox = Derv(Ox = data_hold$Ox, h = data_hold$Par$h, npoints = DerApprox)
+  Jox = Derv(Ox = Ox, h = Par$h, npoints = DerApprox)
 }
 
 #backward differentiation formula
 
-BDF <- function(){
-  al1 = 1/(data_hold$Par$h^2)
-  al2 = -2/(data_hold$Par$h^2)
-  al3 = 1/(data_hold$Par$h^2)
-  a1 = (al2 - 1.5/data_hold$Par$dtn)/al1
+BDF <- function(Ox, Par){
+  al1 = 1/(Par$h^2)
+  al2 = -2/(Par$h^2)
+  al3 = 1/(Par$h^2)
+  a1 = (al2 - 1.5/Par$dtn)/al1
   a2 = al3/al1
 
-  for (i1 in 1:(data_hold$Par$l-1)) {
-    Y = ZeroMat(data_hold$Par$j-2,data_hold$Par$j-2)
+  for (i1 in 1:(Par$l-1)) {
+    Y = ZeroMat(Par$j-2,Par$j-2)
     Y[1,1] = a1
     Y[1,2] = a2
-    Y[data_hold$Par$j-2,data_hold$Par$j-3] = 1
-    Y[data_hold$Par$j-2,data_hold$Par$j-2] = a1
-    for (i in 2:(data_hold$Par$j-3)) {
+    Y[Par$j-2,Par$j-3] = 1
+    Y[Par$j-2,Par$j-2] = a1
+    for (i in 2:(Par$j-3)) {
       Y[i,i] = a1
       Y[i,i-1] = 1
       Y[i, i +1] = a2
     }
 
-    data_hold$Ox[i1,1] = 0
-    data_hold$Ox[i1+1,1] = 0
+    Ox[i1,1] = 0
+    Ox[i1+1,1] = 0
     if (i1 == 1) {
-      b = -2*data_hold$Ox[i1,2:(data_hold$Par$j-1)]/(data_hold$Par$dtn*al1) + data_hold$Ox[1,2:(data_hold$Par$j-1)]/(2*data_hold$Par$dtn*al1)
+      b = -2*Ox[i1,2:(Par$j-1)]/(Par$dtn*al1) + Ox[1,2:(Par$j-1)]/(2*Par$dtn*al1)
     } else {
-      b = -2*data_hold$Ox[i1,2:(data_hold$Par$j-1)]/(data_hold$Par$dtn*al1) + data_hold$Ox[i1-1,2:(data_hold$Par$j-1)]/(2*data_hold$Par$dtn*al1)
+      b = -2*Ox[i1,2:(Par$j-1)]/(Par$dtn*al1) + Ox[i1-1,2:(Par$j-1)]/(2*Par$dtn*al1)
     }
-    b[data_hold$Par$j-2] = b[data_hold$Par$j-2] - a2*1
-    b[1] = b[1] - data_hold$Ox[i1+1,1]
-    data_hold$Ox[i1+1,2:(data_hold$Par$j-1)] = solve(Y) %*% b
+    b[Par$j-2] = b[Par$j-2] - a2*1
+    b[1] = b[1] - Ox[i1+1,1]
+    Ox[i1+1,2:(Par$j-1)] = solve(Y) %*% b
   }
 
-  data_hold$Jox = Derv(Ox = data_hold$Ox, h = data_hold$Par$h, npoints = DerApprox)
+  Jox = Derv(Ox = Ox, h = Par$h, npoints = DerApprox)
 
 }
 
-## parameter caller
+#parameters caller
 
-ParCall = function(Fun, n., Temp., Dx1.,
-                   eta., exptime., Eo1., ko1., ko2., kc.,
-                   Dm., Vf., Vi., Vs., alpha1., Eo2., Dred1., Dred2.,
-                   alpha2., Dred3., Dred4., ko3., ko4., kco., kc1., kc2.,
-                   kc3., kc4., alpha3., alpha4., Eo3., Eo4.){
+ParCall = function(Fun){
   if (!(Fun %in% c("ChronAmp", "PotStep", "LinSwp", "CV", "CVEC", "CVEE", "Gen_CV" )) ) {
     return("Not suitable function was called for parameter calculation")
   }
   if (Fun == "ChronAmp") {
     FA = 96485
     R = 8.3145
-    f = ((FA*n.)/(R*Temp.))
-    Da = Dx1./Dx1.
+    f = ((FA*n)/(R*Temp))
+    Da = Dx/Dx
     l = 100
-    tau = exptime.
-    dt = exptime./l
+    tau = exptime
+    dt = exptime/l
     dtn = dt/tau
-    h = sqrt((Da*dtn)/Dm.)
+    h = sqrt((Da*dtn)/Dm)
     j = ceiling(6*(l)^0.5)
     vt = c(1:l)
     t = dt*vt
-    data_hold$Par = list(FA,R,f,dtn,Da,l,h,j,t,tau)
-    names(data_hold$Par) = c("FA", "R", "f", "dtn", "Da", "l", "h", "j", "t", "tau")
+    Par = list(FA,R,f,dtn,Da,l,h,j,t,tau)
+    names(Par) = c("FA", "R", "f", "dtn", "Da", "l", "h", "j", "t", "tau")
+    return(Par)
 
   } else if (Fun == "PotStep") {
 
@@ -415,5 +419,29 @@ ParCall = function(Fun, n., Temp., Dx1.,
     return(Par)
   }
 
+}
+
+##ggplot graphs caller
+
+graph_caller <- function(Par){
+
+  G <- c("Geuler", "GRK4", "GBI", "GCN", "GBDF")
+
+  i <- list()
+
+  for (solver in 1:length(G)) {
+    i[[solver]] <- (n*Par$FA*get(G[solver])*Dx*Area*Co)/(sqrt(Dx*Par$tau))
+  }
+
+  graphy <- list()
+
+  for (graphic in 1:length(i)) {
+    graphy[[graphic]] <- ggplot(data = data.frame(i[[graphic]][1:(length(i[[graphic]])-1)],Par$t[1:(length(i[[graphic]])-1)]), ##possibile bug nella lista dei grafici
+                                aes(y = i[[graphic]][1:(length(i[[graphic]])-1)], x = Par$t[1:(length(i[[graphic]])-1)])) +
+      geom_point() + xlab("t / s") +
+      ylab("I / A") + theme_classic()
+  }
+
+  return(graphy)
 }
 
