@@ -57,6 +57,8 @@ CVEE(
 
 \item{Dm}{simulation parameter, maximum 0.5 for explicit methods}
 
+\item{l}{number of time steps of the simulation}
+
 \item{Temp}{temperature in kelvin}
 
 \item{n}{number of electrons involved in the process}

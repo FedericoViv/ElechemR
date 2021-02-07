@@ -43,6 +43,8 @@ CVEC(
 
 \item{kc}{rate constant of the reaction Red -> C expressed in s^-1}
 
+\item{l}{number of time steps of the simulation}
+
 \item{alpha}{charge transfer coefficient}
 
 \item{Temp}{temperature in kelvin}

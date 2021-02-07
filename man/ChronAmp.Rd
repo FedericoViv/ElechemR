@@ -35,6 +35,8 @@ ChronAmp(
 
 \item{DerApprox}{number of point for the approximation of the first derivative}
 
+\item{l}{number of time steps of the simulation}
+
 \item{errCheck}{if true the function returns a list with parameters for CottrCheck function}
 
 \item{Method}{method to be used for the simulation = "Euler" "BI" "RK4" "CN" "BDF"}

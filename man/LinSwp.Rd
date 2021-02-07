@@ -48,6 +48,8 @@ LinSwp(
 
 \item{Area}{area of the electrode expressed in cm^2}
 
+\item{l}{number of time steps of the simulation}
+
 \item{DerApprox}{number of point for the approximation of the first derivative}
 
 \item{errCheck}{if true the function returns a list with parameters for CottrCheck function}
