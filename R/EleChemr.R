@@ -9,6 +9,7 @@
 #' @param Temp temperature in kelvin
 #' @param n number of electrons involved in the process
 #' @param Area area of the electrode expressed in cm^2
+#' @param l number of time steps of the simulation
 #' @param DerApprox number of point for the approximation of the first derivative
 #' @param errCheck if true the function returns a list with parameters for CottrCheck function
 #' @param Method method to be used for the simulation = "Euler" "BI" "RK4" "CN" "BDF"
@@ -201,6 +202,7 @@ ChronAmp = function(Co = 0.001, exptime = 1, Dx = 0.00001, Dm = 0.45,
 #' @param Temp temperature in kelvin
 #' @param n number of electrons involved in the process
 #' @param Area area of the electrode expressed in cm^2
+#' @param l number of time steps of the simulation
 #' @param DerApprox number of point for the approximation of the first derivative
 #' @param errCheck if true the function returns a list with parameters for CottrCheck function
 #' @param Method method to be used for the simulation = "Euler" "BI" "RK4" "CN" "BDF"
@@ -565,6 +567,7 @@ CottrCheck = function(Elefun) {
 #' @param Temp temperature in kelvin
 #' @param n number of electrons involved in the process
 #' @param Area area of the electrode expressed in cm^2
+#' @param l number of time steps of the simulation
 #' @param DerApprox number of point for the approximation of the first derivative
 #' @param errCheck if true the function returns a list with parameters for CottrCheck function
 #' @param Method method to be used for the simulation = "Euler" "BI" "RK4" "CN" "BDF"
@@ -947,6 +950,7 @@ LinSwp = function(Co = 0.001, Dx = 0.00001, Eo = 0, Dm = 0.45,
 #' @param Temp temperature in kelvin
 #' @param n number of electrons involved in the process
 #' @param Area area of the electrode expressed in cm^2
+#' @param l number of time steps of the simulation
 #' @param DerApprox number of point for the approximation of the first derivative
 #' @param errCheck if true the function returns a list with parameters for CottrCheck function
 #' @param Method method to be used for the simulation = "Euler" "BI" "RK4" "CN" "BDF"
@@ -1327,6 +1331,7 @@ CV = function(Co = 0.001, Dx = 0.00001, Eo = 0, Dm = 0.45,
 #' @param alpha charge transfer coefficient
 #' @param Temp temperature in kelvin
 #' @param n number of electrons involved in the process
+#' @param l number of time steps of the simulation
 #' @param Area area of the electrode expressed in cm^2
 #' @param DerApprox number of point for the approximation of the first derivative
 #' @param errCheck if true the function returns a list with parameters for CottrCheck function
@@ -1714,6 +1719,7 @@ CVEC = function(Co = 0.001, Dx = 0.00001, Eo = 0, Dm = 0.45,
 #' @param Temp temperature in kelvin
 #' @param n number of electrons involved in the process
 #' @param Area area of the electrode expressed in cm^2
+#' @param l number of time steps of the simulation
 #' @param DerApprox number of point for the approximation of the first derivative
 #' @param errCheck if true the function returns a list with parameters for CottrCheck function
 #' @param Method method to be used for the simulation = "Euler" "BI" "RK4" "CN "BDF"
@@ -2255,6 +2261,7 @@ CVEE = function(Co = 0.001, Dx1 = 0.00001, Eo1 = 0,
 #' @param Temp temperature in kelvin
 #' @param n number of electrons involved in the process
 #' @param Area area of the electrode expressed in cm^2
+#' @param l number of time steps of the simulation
 #' @param DerApprox number of point for the approximation of the first derivative
 #' @param errCheck if true the function returns a list with parameters for CottrCheck function
 #' @param Method method to be used for the simulation = "Euler" "BI" "RK4" "CN "BDF"
