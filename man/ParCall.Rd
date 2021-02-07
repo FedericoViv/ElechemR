@@ -4,9 +4,41 @@
 \alias{ParCall}
 \title{Parameters call}
 \usage{
-ParCall(Fun, n., Temp., Dx1., eta., exptime., Eo1., ko1., ko2., kc., Dm.,
-  Vf., Vi., Vs., alpha1., Eo2., Dred1., Dred2., alpha2., Dred3., Dred4.,
-  ko3., ko4., kco., kc1., kc2., kc3., kc4., alpha3., alpha4., Eo3., Eo4.)
+ParCall(
+  Fun,
+  n.,
+  Temp.,
+  Dx1.,
+  eta.,
+  exptime.,
+  Eo1.,
+  ko1.,
+  ko2.,
+  kc.,
+  Dm.,
+  Vf.,
+  Vi.,
+  Vs.,
+  alpha1.,
+  Eo2.,
+  Dred1.,
+  Dred2.,
+  alpha2.,
+  Dred3.,
+  Dred4.,
+  ko3.,
+  ko4.,
+  kco.,
+  kc1.,
+  kc2.,
+  kc3.,
+  kc4.,
+  alpha3.,
+  alpha4.,
+  Eo3.,
+  Eo4.,
+  l.
+)
 }
 \arguments{
 \item{Fun}{Name of the function this function is called to. Must be a string.}
