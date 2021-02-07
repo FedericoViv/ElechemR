@@ -104,6 +104,8 @@ ParCall(
 \item{Eo3.}{reduction potential of the third electrochemical reaction}
 
 \item{Eo4.}{reduction potential of the fourth electrochemical reaction}
+
+\item{l.}{numer of time steps}
 }
 \value{
 inverse matrix of the selected
