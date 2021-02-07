@@ -218,7 +218,7 @@ invMat = function(A) {
 #' @return inverse matrix of the selected
 #'
 #' @examples
-#' ParCall("ChronAmp", n. = 1, Temp. = 298, Dx1. = 0.0001, exptime. = 1, Dm. = 0.45)
+#' ParCall("ChronAmp", n. = 1, Temp. = 298, Dx1. = 0.0001, exptime. = 1, Dm. = 0.45, l. = 100)
 #'
 #' @export
 
