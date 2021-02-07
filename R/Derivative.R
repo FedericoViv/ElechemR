@@ -212,6 +212,7 @@ invMat = function(A) {
 #' @param Vi. Initial potential of the sweep
 #' @param Vf. Final potential of the sweep
 #' @param Vs. Scan rate of the simulation
+#' @param l. numer of time steps
 #'
 #'
 #' @return inverse matrix of the selected
